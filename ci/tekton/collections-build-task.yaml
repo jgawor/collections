@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kabanero-collections
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: collections-build-task
+spec:
+  inputs:
+    resources:
+      - name: git-source
+        type: git
+    params:
+      - name: namespace
+        type: string
+        description: Namespace
+        default: kabanero
+      - name: hostname
+        type: string
+        description: Hostname of the application hosting collections
+        default: kabanero-collections
+      - name: clusterSubdomain
+        type: string
+        description: Cluster subdomain
+  steps:
+    - name: build-collections
+      image: appsody/appsody-docker
+      command: ["/bin/bash"]
+      args:
+        - -cex
+        - |
+          curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+          cd /workspace/git-source/
+          find -name "image" -type d | xargs rm -rf
+          echo "" > ci/lint.sh
+          ./ci/build.sh .
+      env:
+        - name: gitsource
+          value: git-source
+
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor
+      env:
+      - name: "DOCKER_CONFIG"
+        value: "/builder/home/.docker/"
+      command:
+      - /kaniko/executor
+      args:
+      - --dockerfile=/workspace/git-source/ci/nginx/Dockerfile
+      - --destination=docker-registry.default.svc.cluster.local:5000/${inputs.params.namespace}/collections-index
+      - --context=/workspace/git-source/ci/
+      - --skip-tls-verify
+
+    - name: deploy-image-step
+      image: lachlanevenson/k8s-kubectl
+      command: ['/bin/sh']
+      args:
+        - -cx
+        - |
+          sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/openshift.yaml
+          sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/openshift.yaml
+          kubectl apply --validate=false -f /workspace/git-source/ci/nginx/openshift.yaml
+          kubectl delete pod -l app=kabanero-collections
