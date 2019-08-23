@@ -26,6 +26,9 @@ spec:
         volumeMounts:
         - mountPath: /etc/tls/private
           name: kabanero-collections-tls
+        env:
+        - name: EXTERNAL_URL
+          value: "https://HOST"
       volumes:
       - name: kabanero-collections-tls
         secret:
