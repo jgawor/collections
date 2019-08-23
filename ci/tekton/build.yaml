@@ -8,8 +8,13 @@ spec:
   inputs:
     resources:
       - name: git-source
-        resourceRef:
-          name: collections-git
+        resourceSpec:
+          type: git
+          params:
+            - name: revision
+              value: tekton_build
+            - name: url
+              value: https://github.com/jgawor/collections.git
     params:
       - name: hostname
         value: nginx-collections-jarek
