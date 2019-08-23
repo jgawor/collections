@@ -14,6 +14,8 @@ spec:
       args:
         - -cex
         - |
+          curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
           cd /workspace/git-source/
           find -name "image" -type d | xargs rm -rf
           echo "" > ci/lint.sh
@@ -35,8 +37,12 @@ spec:
       - --context=/workspace/git-source/ci/
       - --skip-tls-verify
 
-
-
+    - name: deploy-image-step
+      image: lachlanevenson/k8s-kubectl
+      command: ['/bin/sh']
+      args:
+        - -c
+        - kubectl apply -f /workspace/git-source/ci/nginx/k8s.yaml
 
   volumes:
     - name: docker-socket
