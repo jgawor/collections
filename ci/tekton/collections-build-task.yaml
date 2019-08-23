@@ -7,6 +7,15 @@ spec:
     resources:
       - name: git-source
         type: git
+     params:
+      - name: hostname
+        type: string
+        description: Hostname of the application hosting collections
+        default: 
+    params:
+      - name: clusterSubdomain
+        type: string
+        description: Cluster subdomain
   steps:
     - name: build-collections
       image: appsody/appsody-docker
@@ -19,6 +28,7 @@ spec:
           cd /workspace/git-source/
           find -name "image" -type d | xargs rm -rf
           echo "" > ci/lint.sh
+          export RELEASE_URL=$(inputs.params.hostname).$(inputs.params.clusterSubdomain)
           ./ci/build.sh .
       env:
         - name: gitsource
@@ -42,6 +52,7 @@ spec:
       command: ['/bin/sh']
       args:
         - -c
+        - sed -i -e 's/HOST/$(inputs.params.hostname).$(inputs.params.clusterSubdomain)/' /workspace/git-source/ci/nginx/k8s.yaml
         - kubectl apply --validate=false -f /workspace/git-source/ci/nginx/k8s.yaml
 
   volumes:

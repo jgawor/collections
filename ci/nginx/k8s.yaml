@@ -54,6 +54,7 @@ kind: Route
 metadata:
   name: nginx-collections
 spec:
+  host: HOST
   to:
     kind: Service
     name: nginx-collections

@@ -10,4 +10,8 @@ spec:
       - name: git-source
         resourceRef:
           name: collections-git
-          
+    params:
+      - name: hostname
+        value: nginx-collections-jarek
+      - name: clusterSubdomain
+        value: 10.211.54.251.nip.io
