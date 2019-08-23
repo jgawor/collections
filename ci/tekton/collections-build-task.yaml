@@ -53,11 +53,9 @@ spec:
       command: ['/bin/sh']
       args:
         - -cx
-        - sed -i -e 's/HOST/$RELEASE_URL/' /workspace/git-source/ci/nginx/k8s.yaml
-        - kubectl apply -f /workspace/git-source/ci/nginx/k8s.yaml
-      env:
-        - name: RELEASE_URL
-          value: https://${inputs.params.hostname}.${inputs.params.clusterSubdomain}
+        - |
+          sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/k8s.yaml
+          kubectl apply --validate=false -f /workspace/git-source/ci/nginx/k8s.yaml
 
   volumes:
     - name: docker-socket
