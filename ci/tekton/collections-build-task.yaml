@@ -58,9 +58,9 @@ spec:
       args:
         - -cx
         - |
-          sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/k8s.yaml
-          sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/k8s.yaml
-          kubectl apply --validate=false -f /workspace/git-source/ci/nginx/k8s.yaml
+          sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/openshift.yaml
+          sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/openshift.yaml
+          kubectl apply --validate=false -f /workspace/git-source/ci/nginx/openshift.yaml
 
   volumes:
     - name: docker-socket
