@@ -8,6 +8,10 @@ spec:
       - name: git-source
         type: git
     params:
+      - name: namespace
+        type: string
+        description: Namespace
+        default: kabanero
       - name: hostname
         type: string
         description: Hostname of the application hosting collections
@@ -44,7 +48,7 @@ spec:
       - /kaniko/executor
       args:
       - --dockerfile=/workspace/git-source/ci/nginx/Dockerfile
-      - --destination=docker-registry.default.svc.cluster.local:5000/jarek/appsody-index
+      - --destination=docker-registry.default.svc.cluster.local:5000/${inputs.params.namespace}/collections-index
       - --context=/workspace/git-source/ci/
       - --skip-tls-verify
 
@@ -55,6 +59,7 @@ spec:
         - -cx
         - |
           sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/k8s.yaml
+          sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/k8s.yaml
           kubectl apply --validate=false -f /workspace/git-source/ci/nginx/k8s.yaml
 
   volumes:
