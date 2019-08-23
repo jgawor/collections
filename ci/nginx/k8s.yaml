@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-collections
+  labels:
+    app: nginx-collections
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-collections
+  template:
+    metadata:
+      labels:
+        app: nginx-collections
+      annotations:
+        sidecar.istio.io/inject: false
+    spec:
+      containers:
+      - name: nginx
+        image: docker-registry.default.svc.cluster.local:5000/jarek/appsody-index
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /etc/tls/private
+          name: icpa-landing-tls
+      volumes:
+      - name: nginx-collections-tls
+        secret:
+          secretName: nginx-collections-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-collections
+  labels:
+    app: nginx-collections
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: nginx-collections-tls
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-collections
+  ports:
+  - name: https
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: nginx-collections
+spec:
+  host: collections
+  to:
+    kind: Service
+    name: nginx-collections
+  tls:
+    termination: Reencrypt
+    insecureEdgeTerminationPolicy: Redirect

@@ -1,0 +1,13 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: collections-build-task-run
+spec:
+  taskRef:
+    name: collections-build-task
+  inputs:
+    resources:
+      - name: git-source
+        resourceRef:
+          name: collections-git
+          

@@ -1,0 +1,45 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: collections-build-task
+spec:
+  inputs:
+    resources:
+      - name: git-source
+        type: git
+  steps:
+    - name: build-collections
+      image: appsody/appsody-docker
+      command: ["/bin/bash"]
+      args:
+        - -cex
+        - |
+          cd /workspace/git-source/
+          find -name "image" -type d | xargs rm -rf
+          echo "" > ci/lint.sh
+          ./ci/build.sh .
+      env:
+        - name: gitsource
+          value: git-source
+
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor
+      env:
+      - name: "DOCKER_CONFIG"
+        value: "/builder/home/.docker/"
+      command:
+      - /kaniko/executor
+      args:
+      - --dockerfile=/workspace/git-source/ci/nginx/Dockerfile
+      - --destination=docker-registry.default.svc.cluster.local:5000/jarek/appsody-index
+      - --context=/workspace/git-source/ci/
+      - --skip-tls-verify
+
+
+
+
+  volumes:
+    - name: docker-socket
+      hostPath:
+        path: /var/run/docker.sock
+        type: Socket
