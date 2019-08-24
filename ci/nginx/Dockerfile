@@ -7,10 +7,10 @@ COPY assets            /opt/www/public
 EXPOSE 8080
 
 RUN touch /var/run/nginx.pid && \
-  chown -R www-data:www-data /var/run/nginx.pid && \
-  chown -R www-data:www-data /var/cache/nginx && \
-  chown -R www-data:www-data /opt/www/public
+  chown -R nginx:nginx /var/run/nginx.pid && \
+  chown -R nginx:nginx /var/cache/nginx && \
+  chown -R nginx:nginx /opt/www/public
 
-USER www-data
+USER nginx
 
 ENTRYPOINT ["/opt/startup.sh"]
