@@ -57,8 +57,9 @@ spec:
         - |
           sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/openshift.yaml
           sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/openshift.yaml
+          sed -i -e 's/DATE/$(date --utc '+%FT%TZ')/' /workspace/git-source/ci/nginx/openshift.yaml
           kubectl apply --validate=false -f /workspace/git-source/ci/nginx/openshift.yaml
-          kubectl delete pod -l app=kabanero-collections || true
+
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -88,6 +89,8 @@ rules:
   - apps
   resources:
   - deployments
+  - deployments/rollback
+  - deployments/scale
   verbs:
   - get
   - list

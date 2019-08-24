@@ -15,6 +15,7 @@ spec:
       labels:
         app: kabanero-collections
       annotations:
+        date: "DATE"
         sidecar.istio.io/inject: "false"
     spec:
       containers:
