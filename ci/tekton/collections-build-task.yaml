@@ -1,3 +1,8 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kabanero-collections
+---
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
@@ -59,9 +64,3 @@ spec:
           sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/openshift.yaml
           kubectl apply --validate=false -f /workspace/git-source/ci/nginx/openshift.yaml
           kubectl delete pod -l app=kabanero-collections
-
-  volumes:
-    - name: docker-socket
-      hostPath:
-        path: /var/run/docker.sock
-        type: Socket
