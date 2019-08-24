@@ -1,8 +1,3 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: kabanero-collections
----
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
@@ -58,9 +53,124 @@ spec:
       image: lachlanevenson/k8s-kubectl
       command: ['/bin/sh']
       args:
-        - -cx
+        - -cex
         - |
           sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/openshift.yaml
           sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/openshift.yaml
           kubectl apply --validate=false -f /workspace/git-source/ci/nginx/openshift.yaml
-          kubectl delete pod -l app=kabanero-collections
+          kubectl delete pod -l app=kabanero-collections || true
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kabanero-collections
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kabanero-collections
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - deployments
+  - services
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  - route.openshift.io
+  attributeRestrictions: null
+  resources:
+  - routes
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  - route.openshift.io
+  attributeRestrictions: null
+  resources:
+  - routes/custom-host
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  - route.openshift.io
+  attributeRestrictions: null
+  resources:
+  - routes/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  - image.openshift.io
+  attributeRestrictions: null
+  resources:
+  - imagestreams/layers
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ""
+  - image.openshift.io
+  attributeRestrictions: null
+  resources:
+  - imagestreams
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  - build.openshift.io
+  attributeRestrictions: null
+  resources:
+  - builds/details
+  verbs:
+  - update
+- apiGroups:
+  - ""
+  - build.openshift.io
+  attributeRestrictions: null
+  resources:
+  - builds
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kabanero-collections
+subjects:
+- kind: ServiceAccount
+  name: kabanero-collections
+roleRef:
+  kind: Role
+  name: kabanero-collections
+  apiGroup: rbac.authorization.k8s.io
