@@ -1,7 +1,12 @@
 
 1. Deploy pipeline
     ```
-    oc apply -f tekton/collections-build-task.yaml
+    oc apply -f tekton/collections-build-task.yaml -n kabanero
+    ```
+
+1. Configure security constraints for service account
+    ```
+    oc adm policy add-scc-to-user anyuid -z kabanero-collections -n kabanero
     ```
 
 1. Configure build
