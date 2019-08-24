@@ -45,7 +45,7 @@ spec:
       - /kaniko/executor
       args:
       - --dockerfile=/workspace/git-source/ci/nginx/Dockerfile
-      - --destination=docker-registry.default.svc.cluster.local:5000/${inputs.params.namespace}/collections-index
+      - --destination=docker-registry.default.svc.cluster.local:5000/${inputs.params.namespace}/collections-index:${inputs.resources.git-source.revision}
       - --context=/workspace/git-source/ci/
       - --skip-tls-verify
 
@@ -57,6 +57,7 @@ spec:
         - |
           sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/openshift.yaml
           sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/openshift.yaml
+          sed -i -e 's/TAG/{inputs.resources.git-source.revision}/' workspace/git-source/ci/nginx/openshift.yaml
           sed -i -e "s/DATE/$(date --utc '+%FT%TZ')/" /workspace/git-source/ci/nginx/openshift.yaml
           kubectl apply --validate=false -f /workspace/git-source/ci/nginx/openshift.yaml
 

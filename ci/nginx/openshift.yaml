@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: docker-registry.default.svc:5000/NAMESPACE/collections-index
+        image: docker-registry.default.svc:5000/NAMESPACE/collections-index:TAG
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
