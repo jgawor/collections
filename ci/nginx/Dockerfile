@@ -9,7 +9,8 @@ EXPOSE 8080
 RUN touch /var/run/nginx.pid && \
   chown -R nginx:nginx /var/run/nginx.pid && \
   chown -R nginx:nginx /var/cache/nginx && \
-  chown -R nginx:nginx /opt/www/public
+  chown -R nginx:nginx /opt/www/public &&
+  chmod -R g=u /opt/www/public /var/cache/nginx
 
 USER nginx
 
