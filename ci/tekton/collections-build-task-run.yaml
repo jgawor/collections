@@ -3,7 +3,7 @@ kind: TaskRun
 metadata:
   name: collections-build-task-run
 spec:
-  serviceAccount: kabanero-collections
+  serviceAccount: collections-repository
   taskRef:
     name: collections-build-task
   inputs:

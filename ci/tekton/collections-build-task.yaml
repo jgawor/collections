@@ -15,7 +15,7 @@ spec:
       - name: hostname
         type: string
         description: Hostname of the application hosting collections
-        default: kabanero-collections
+        default: collections-repository
       - name: clusterSubdomain
         type: string
         description: Cluster subdomain
@@ -45,7 +45,7 @@ spec:
       - /kaniko/executor
       args:
       - --dockerfile=/workspace/git-source/ci/nginx/Dockerfile
-      - --destination=docker-registry.default.svc.cluster.local:5000/${inputs.params.namespace}/collections-index:${inputs.resources.git-source.revision}
+      - --destination=docker-registry.default.svc.cluster.local:5000/${inputs.params.namespace}/collections-repository:${inputs.resources.git-source.revision}
       - --context=/workspace/git-source/ci/
       - --skip-tls-verify
 
@@ -65,12 +65,12 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: kabanero-collections
+  name: collections-repository
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: kabanero-collections
+  name: collections-repository
 rules:
 - apiGroups:
   - ""
@@ -170,11 +170,11 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: kabanero-collections
+  name: collections-repository
 subjects:
 - kind: ServiceAccount
-  name: kabanero-collections
+  name: collections-repository
 roleRef:
   kind: Role
-  name: kabanero-collections
+  name: collections-repository
   apiGroup: rbac.authorization.k8s.io
