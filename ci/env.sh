@@ -54,7 +54,7 @@ fi
 
 #this is the default list of repos that we need to build index for
 if [ -z "$REPO_LIST" ]; then
-    export REPO_LIST="experimental incubator stable"
+    export REPO_LIST="incubator"
 fi
 
 # dockerhub org for publishing stack

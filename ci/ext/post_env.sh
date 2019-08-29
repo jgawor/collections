@@ -22,6 +22,6 @@ unset INDEX_LIST
 # Setup the environment variable needed to build Kabanero Collections
 export BUILD_ALL=true
 export REPO_LIST=incubator
-export EXCLUDED_STACKS=incubator/swift
+export EXCLUDED_STACKS="incubator/java-spring-boot2 incubator/nodejs-express incubator/nodejs-loopback incubator/nodejs incubator/swift"
 export CODEWIND_INDEX=false
 export INDEX_IMAGE=kabanero-index

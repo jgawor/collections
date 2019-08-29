@@ -6,7 +6,7 @@ set -e
 
 image_push() {
     if [ "$USE_BUILDAH" == "true" ]; then
-        sudo buildah push $@
+        sudo buildah push --tls-verify=false $@
     else
         docker push $@
     fi
@@ -56,7 +56,8 @@ else
     done
 
     echo "Releasing stack index"
-    image_push $DOCKERHUB_ORG/appsody_index
+    image_push $DOCKERHUB_ORG/$INDEX_IMAGE
+    image push $DOCKERHUB_ORG/$INDEX_IMAGE:$INDEX_VERSION
 fi
 
 # expose an extension point for running after main 'release' processing
