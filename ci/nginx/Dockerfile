@@ -1,4 +1,4 @@
-FROM nginx:stable-alpine
+FROM docker.io/nginx:stable-alpine
 
 COPY nginx/nginx.conf  /etc/nginx/nginx.conf
 COPY nginx/startup.sh  /opt/startup.sh
