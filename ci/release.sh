@@ -4,6 +4,15 @@ set -e
 # setup environment
 . $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh
 
+image_push() {
+    if [ "$USE_BUILDAH" == "true" ]; then
+        sudo buildah push $@
+    else
+        docker push $@
+    fi
+}
+
+
 # directory to store assets for test or release
 release_dir=$script_dir/release
 mkdir -p $release_dir
@@ -25,7 +34,7 @@ do
 done
 
 # dockerhub/docker registry login in
-echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin $DOCKER_REGISTRY
+#echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin $DOCKER_REGISTRY
 
 if [ -f $build_dir/image_list ]
 then
@@ -34,7 +43,7 @@ then
         if [ "$line" != "" ]
         then
             echo "Pushing image $line"
-            docker push $line
+            image_push $line
         fi
     done < $build_dir/image_list
 else
@@ -43,11 +52,11 @@ else
     do
         stack_id=`echo ${repo_stack/*\//}`
         echo "Releasing stack images for: $stack_id"
-        docker push $DOCKERHUB_ORG/$stack_id
+        image_push $DOCKERHUB_ORG/$stack_id
     done
 
     echo "Releasing stack index"
-    docker push $DOCKERHUB_ORG/appsody_index
+    image_push $DOCKERHUB_ORG/appsody_index
 fi
 
 # expose an extension point for running after main 'release' processing

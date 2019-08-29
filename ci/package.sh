@@ -6,7 +6,7 @@ set -e
 
 build_image() {
     if [ "$USE_BUILDAH" == "true" ]; then
-        sudo buildah bud --isolation chroot $@
+        sudo buildah bud $@
     else
         docker build $@
     fi
