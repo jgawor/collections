@@ -23,5 +23,5 @@ unset INDEX_LIST
 export BUILD_ALL=true
 export REPO_LIST=incubator
 export EXCLUDED_STACKS=incubator/swift
-export CODEWIND_INDEX=true
+export CODEWIND_INDEX=false
 export INDEX_IMAGE=kabanero-index
