@@ -18,6 +18,6 @@ spec:
               value: https://github.com/jgawor/collections.git
     params:
       - name: registry
-        value: docker-registry-default.10.211.54.251.nip.io
+        value: docker-registry.default.svc:5000
       - name: clusterSubdomain
         value: 10.211.54.251.nip.io

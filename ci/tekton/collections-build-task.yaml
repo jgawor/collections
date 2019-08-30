@@ -24,7 +24,7 @@ spec:
         description: Cluster subdomain
       - name: codewind
         type: boolean
-        default: true
+        default: "true"
         description: Build Codewind index
 
   steps:
@@ -39,20 +39,18 @@ spec:
           # install yq
           curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64
           chmod +x /usr/local/bin/yq
+
           # install git
-          yum install -y git
+          yum install -y git which
+
           # install pyyaml
-          if [ "{inputs.params.codewind}" == "true" ]; then
-              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-              python3 get-pip.py
-              pip install pyyaml
-              export CODEWIND_INDEX=true
-          else
-              export CODEWIND_INDEX=false
-          fi
-          cd /workspace/git-source/
+          curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+          python3 get-pip.py
+          pip install pyyaml
+
+          # do build and release
           export DOCKERHUB_ORG="${inputs.params.registry}/${inputs.params.namespace}"
-          echo $DOCKERHUB_ORG
+          cd /workspace/git-source/
           ./ci/prefetch.sh
           ./ci/build.sh .
           ./ci/release.sh
@@ -62,7 +60,7 @@ spec:
         - name: USE_BUILDAH
           value: "true"
       volumeMounts:
-        - name: varlibcontainers
+        - name: var-lib-containers
           mountPath: /var/lib/containers
 
     - name: deploy-image-step
@@ -71,15 +69,16 @@ spec:
       args:
         - -cex
         - |
-          sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/openshift.yaml
-          sed -i -e "s/REGISTRY/${inputs.params.registry}/" /workspace/git-source/ci/nginx/openshift.yaml
-          sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/openshift.yaml
-          sed -i -e 's/TAG/${inputs.resources.git-source.revision}/' /workspace/git-source/ci/nginx/openshift.yaml
-          sed -i -e "s/DATE/$(date --utc '+%FT%TZ')/" /workspace/git-source/ci/nginx/openshift.yaml
-          kubectl apply --validate=false -f /workspace/git-source/ci/nginx/openshift.yaml
+          YAML_FILE=/workspace/git-source/ci/nginx/openshift.yaml
+          sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' $YAML_FILE
+          sed -i -e 's/REGISTRY/${inputs.params.registry}/' $YAML_FILE
+          sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' $YAML_FILE
+          sed -i -e 's/TAG/latest/' $YAML_FILE
+          sed -i -e "s/DATE/$(date --utc '+%FT%TZ')/" $YAML_FILE
+          kubectl apply --validate=false -f $YAML_FILE
 
   volumes:
-    - name: varlibcontainers
+    - name: var-lib-containers
       emptyDir: {}
 
 ---
