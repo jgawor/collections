@@ -1,0 +1,200 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: collections-build-task
+spec:
+  inputs:
+    resources:
+      - name: git-source
+        type: git
+    params:
+      - name: registry
+        type: string
+        description: Docker registry
+      - name: namespace
+        type: string
+        description: Namespace
+        default: kabanero
+      - name: hostname
+        type: string
+        description: Hostname of the application hosting collections
+        default: collections-repository
+      - name: clusterSubdomain
+        type: string
+        description: Cluster subdomain
+      - name: codewind
+        type: boolean
+        default: true
+        description: Build Codewind index
+
+  steps:
+    - name: build-collections
+      securityContext:
+        privileged: true
+      image: quay.io/buildah/stable:v1.9.0
+      command: ["/bin/bash"]
+      args:
+        - -cex
+        - |
+          # install yq
+          curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+          # install git
+          yum install -y git
+          # install pyyaml
+          if [ "{inputs.params.codewind}" == "true" ]; then
+              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+              python3 get-pip.py
+              pip install pyyaml
+              export CODEWIND_INDEX=true
+          else
+              export CODEWIND_INDEX=false
+          fi
+          cd /workspace/git-source/
+          export DOCKERHUB_ORG="${inputs.params.registry}/${inputs.params.namespace}"
+          echo $DOCKERHUB_ORG
+          ./ci/prefetch.sh
+          ./ci/build.sh .
+          ./ci/release.sh
+      env:
+        - name: gitsource
+          value: git-source
+        - name: USE_BUILDAH
+          value: "true"
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+
+    - name: deploy-image-step
+      image: lachlanevenson/k8s-kubectl
+      command: ['/bin/sh']
+      args:
+        - -cex
+        - |
+          sed -i -e 's/HOST/${inputs.params.hostname}.${inputs.params.clusterSubdomain}/' /workspace/git-source/ci/nginx/openshift.yaml
+          sed -i -e 's/NAMESPACE/${inputs.params.namespace}/' /workspace/git-source/ci/nginx/openshift.yaml
+          sed -i -e 's/TAG/${inputs.resources.git-source.revision}/' /workspace/git-source/ci/nginx/openshift.yaml
+          sed -i -e "s/DATE/$(date --utc '+%FT%TZ')/" /workspace/git-source/ci/nginx/openshift.yaml
+          kubectl apply --validate=false -f /workspace/git-source/ci/nginx/openshift.yaml
+
+  volumes:
+    - name: varlibcontainers
+      emptyDir: {}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: collections-repository
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: collections-repository
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - deployments
+  - services
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - deployments/rollback
+  - deployments/scale
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  - route.openshift.io
+  attributeRestrictions: null
+  resources:
+  - routes
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  - route.openshift.io
+  attributeRestrictions: null
+  resources:
+  - routes/custom-host
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  - route.openshift.io
+  attributeRestrictions: null
+  resources:
+  - routes/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  - image.openshift.io
+  attributeRestrictions: null
+  resources:
+  - imagestreams/layers
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ""
+  - image.openshift.io
+  attributeRestrictions: null
+  resources:
+  - imagestreams
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  - build.openshift.io
+  attributeRestrictions: null
+  resources:
+  - builds/details
+  verbs:
+  - update
+- apiGroups:
+  - ""
+  - build.openshift.io
+  attributeRestrictions: null
+  resources:
+  - builds
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: collections-repository
+subjects:
+- kind: ServiceAccount
+  name: collections-repository
+roleRef:
+  kind: Role
+  name: collections-repository
+  apiGroup: rbac.authorization.k8s.io
