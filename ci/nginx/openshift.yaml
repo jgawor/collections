@@ -2,18 +2,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kabanero-index
+  name: collections-repository
   labels:
-    app: kabanero-index
+    app: collections-repository
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kabanero-index
+      app: collections-repository
   template:
     metadata:
       labels:
-        app: kabanero-index
+        app: collections-repository
       annotations:
         date: "DATE"
         sidecar.istio.io/inject: "false"
@@ -31,13 +31,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kabanero-index
+  name: collections-repository
   labels:
-    app: kabanero-index
+    app: collections-repository
 spec:
   type: ClusterIP
   selector:
-    app: kabanero-index
+    app: collections-repository
   ports:
   - name: http
     port: 8080
@@ -47,9 +47,9 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: kabanero-index
+  name: collections-repository
 spec:
   host: HOST
   to:
     kind: Service
-    name: kabanero-index
+    name: collections-repository
