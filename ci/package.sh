@@ -4,13 +4,7 @@ set -e
 # setup environment
 . $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh
 
-build_image() {
-    if [ "$USE_BUILDAH" == "true" ]; then
-        sudo buildah bud $@
-    else
-        docker build $@
-    fi
-}
+. $script_dir/docker.sh
 
 mkdir -p $build_dir/index-src
 
@@ -75,7 +69,7 @@ do
 
                     if [ -d $stack_dir/image ]
                     then
-                        build_image \
+                        image_build \
                             --build-arg GIT_ORG_REPO=$GIT_ORG_REPO \
                             --build-arg DOCKERHUB_ORG=$DOCKERHUB_ORG \
                             --build-arg STACK_ID=$stack_id \
@@ -247,7 +241,7 @@ then
     nginx_arg="--build-arg NGINX_IMAGE=$NGINX_IMAGE"
 fi
 
-build_image $nginx_arg \
+image_build $nginx_arg \
  -t $DOCKERHUB_ORG/$INDEX_IMAGE \
  -t $DOCKERHUB_ORG/$INDEX_IMAGE:${INDEX_VERSION} \
  -f $script_dir/nginx/Dockerfile $script_dir

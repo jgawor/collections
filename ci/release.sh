@@ -4,14 +4,7 @@ set -e
 # setup environment
 . $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/env.sh
 
-image_push() {
-    if [ "$USE_BUILDAH" == "true" ]; then
-        sudo buildah push --tls-verify=false $@
-    else
-        docker push $@
-    fi
-}
-
+. $script_dir/docker.sh
 
 # directory to store assets for test or release
 release_dir=$script_dir/release
@@ -33,8 +26,10 @@ do
     fi
 done
 
-# dockerhub/docker registry login in
-#echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin $DOCKER_REGISTRY
+# login to dockerhub/docker registry login if not running in kubernetes
+if [ -z "$KUBERNETES_SERVICE_HOST" ]; then
+    registry_login "$DOCKER_PASSWORD" "$DOCKER_USERNAME" "$DOCKER_REGISTRY"
+fi
 
 if [ -f $build_dir/image_list ]
 then
