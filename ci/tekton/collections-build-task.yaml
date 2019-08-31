@@ -41,7 +41,7 @@ spec:
           chmod +x /usr/local/bin/yq
 
           # install git
-          yum install -y git which
+          yum install -y git which findutils
 
           # install pyyaml
           curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
