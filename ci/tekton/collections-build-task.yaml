@@ -23,6 +23,10 @@ spec:
       - name: clusterSubdomain
         type: string
         description: Cluster subdomain
+      - name: skipTests
+        type: string
+        description: Set to 'yes' to skip tests
+        default: no
 
   steps:
     - name: build-collections
@@ -44,6 +48,16 @@ spec:
           curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
           python3 get-pip.py
           pip install pyyaml
+
+          # test dependencies
+          if [ "${inputs.params.skipTests}" = "yes" ]; then
+            export SKIP_TESTS="${inputs.params.skipTests}"
+          else
+            # install appsody dependency
+            curl -L -o /tmp/appsody.tar.gz https://github.com/appsody/appsody/releases/download/0.4.6/appsody-0.4.6-linux-amd64.tar.gz
+            tar xvf /tmp/appsody.tar.gz -C /usr/local/bin/ appsody
+            chmod +x /usr/local/bin/appsody
+          fi
 
           # do build and release
           export USE_BUILDAH="true"
