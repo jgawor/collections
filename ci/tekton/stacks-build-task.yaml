@@ -29,7 +29,7 @@ spec:
     - name: build-stacks
       securityContext:
         privileged: true
-      image: quay.io/buildah/stable:v1.9.0
+      image: quay.io/buildah/stable:v1.12.0
       command: ["/bin/bash"]
       args:
         - -cex
