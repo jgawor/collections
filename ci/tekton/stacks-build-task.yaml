@@ -29,7 +29,7 @@ spec:
     - name: build-stacks
       securityContext:
         privileged: true
-      image: quay.io/buildah/stable:v1.12.0
+      image: quay.io/buildah/stable:v1.9.0
       command: ["/bin/bash"]
       args:
         - -cex
@@ -49,6 +49,8 @@ spec:
           # do build and release
           export USE_BUILDAH="true"
           export BUILDAH_FORMAT="docker"
+          export BUILDAH_STARTED_IN_USERNS="" 
+          export BUILDAH_ISOLATION=chroot
           export IMAGE_REGISTRY="$(inputs.params.registry)"
           export IMAGE_REGISTRY_ORG="$(inputs.params.registryNamespace)"
           export IMAGE_REGISTRY_PUBLISH="true"
